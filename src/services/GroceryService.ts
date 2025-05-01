@@ -5,7 +5,33 @@ import type { GroceryItem } from '../models/GroceryItem'
 const API_URL = 'http://your-backend-url/api'
 
 export function useGroceryService() {
-  const groceries: Ref<GroceryItem[]> = ref([])
+  const groceries: Ref<GroceryItem[]> = ref([
+    // Example data; replace with real data or fetch from API
+    {
+      id: 1,
+      name: 'Milk',
+      expirationDate: '2025-05-03',
+      category: 'Dairy',
+      quantity: 2,
+      unit: 'L',
+      isExpired: false,
+      daysUntilExpiration: 2,
+      placement: 'Fridge',
+      active: true,
+    },
+    {
+      id: 2,
+      name: 'Bread',
+      expirationDate: '2025-05-01',
+      category: 'Bakery',
+      quantity: 1,
+      unit: 'Loaf',
+      isExpired: true,
+      daysUntilExpiration: 0,
+      placement: 'Pantry',
+      active: true,
+    },
+  ])
   const loading: Ref<boolean> = ref(false)
   const error: Ref<string | null> = ref(null)
 

@@ -1,5 +1,5 @@
 export interface GroceryItem {
-  id: number;
+  id?: number;
   name: string;
   expirationDate: string;
   category: string;
@@ -24,5 +24,19 @@ export function getExpirationStatus(groceryItem: GroceryItem): ExpirationStatus 
     return ExpirationStatus.EXPIRING_SOON;
   } else {
     return ExpirationStatus.GOOD;
+  }
+}
+
+export function createDefault(): GroceryItem {
+  return {
+    name: '',
+    expirationDate: '',
+    category: '',
+    quantity: 0,
+    unit: '',
+    isExpired: false,
+    daysUntilExpiration: 0,
+    placement: '',
+    active: true,
   }
 }
