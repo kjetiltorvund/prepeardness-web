@@ -53,7 +53,7 @@ export function useGroceryService() {
     }
   }
 
-  const addGroceryItem = async (item) => {
+  const addGroceryItem = async (item: GroceryItem) => {
     try {
       // Headers automatically added by interceptor
       const response = await api.post('/groceries', item)

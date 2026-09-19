@@ -9,8 +9,6 @@ import Button from 'primevue/button'
 
 import { type GroceryItem, createDefault } from '../models/GroceryItem'
 
-import 
-
 const groceryItem: Ref<GroceryItem> = ref(createDefault())
 
 function saveAndClose() {

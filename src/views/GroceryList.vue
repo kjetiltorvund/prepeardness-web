@@ -1,6 +1,8 @@
 <template>
   <div>
     <h1>Grocery List</h1>
+    <p v-if="loading">Loading groceries...</p>
+    <p v-else-if="error" role="alert">{{ error }}</p>
     <table>
       <thead>
         <tr>
@@ -15,7 +17,7 @@
       </thead>
       <tbody>
         <tr v-for="item in groceryItems" :key="item.id">
-          <td>{{ item.name }}</td>
+          <td>{{ item.article_name }}</td>
           <td>{{ item.category }}</td>
           <td>{{ item.quantity }}</td>
           <td>{{ item.unit }}</td>
@@ -29,34 +31,13 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
-import { type GroceryItem, getExpirationStatus } from '@/models/GroceryItem'
+import { onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
+import { getExpirationStatus } from '@/models/GroceryItem'
+import { useGroceryStore } from '@/stores/groceries'
 
-const groceryItems = ref<GroceryItem[]>([
-  // Example data; replace with real data or fetch from API
-  {
-    id: 1,
-    name: 'Milk',
-    expirationDate: '2025-05-03',
-    category: 'Dairy',
-    quantity: 2,
-    unit: 'L',
-    isExpired: false,
-    daysUntilExpiration: 2,
-    placement: 'Fridge',
-    active: true,
-  },
-  {
-    id: 2,
-    name: 'Bread',
-    expirationDate: '2025-05-01',
-    category: 'Bakery',
-    quantity: 1,
-    unit: 'Loaf',
-    isExpired: true,
-    daysUntilExpiration: 0,
-    placement: 'Pantry',
-    active: true,
-  },
-])
+const groceryStore = useGroceryStore()
+const { groceries: groceryItems, loading, error } = storeToRefs(groceryStore)
+
+onMounted(() => groceryStore.fetchGroceries())
 </script>

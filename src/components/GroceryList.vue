@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { useGroceryService } from '../services/GroceryService'
+import { onMounted, ref } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useGroceryStore } from '@/stores/groceries'
 import { getExpirationStatus, ExpirationStatus, type GroceryItem } from '../models/GroceryItem'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -9,15 +10,26 @@ import ProgressSpinner from 'primevue/progressspinner'
 import Message from 'primevue/message'
 import Toast from 'primevue/toast'
 import Tag from 'primevue/tag'
+import EditGrocery from './EditGrocery.vue'
 
-const { groceries, loading, error, fetchExpiringGroceries } = useGroceryService()
+const groceryStore = useGroceryStore()
+const { groceries, loading, error } = storeToRefs(groceryStore)
 
 onMounted(() => {
-  //fetchExpiringGroceries()
+  groceryStore.fetchGroceries()
 })
+
+const selectedArticle = ref();
+const dialogVisible = ref(false);
+
+const onRowSelect = (event) => {
+  selectedArticle.value = event.data
+  dialogVisible.value = true
+}
 
 const getTagSeverity = (item: GroceryItem) => {
   const status = getExpirationStatus(item)
+  console.log(status)
   switch (status) {
     case ExpirationStatus.EXPIRED:
       return 'danger'
@@ -66,13 +78,15 @@ const getExpirationLabel = (item: GroceryItem) => {
           sortField="daysUntilExpiration"
           :sortOrder="1"
           filterDisplay="menu"
+          selectionMode="single"
+          v-model:selection="selectedArticle"
         >
-          <Column field="name" header="Vare" sortable />
+          <Column field="article_name" header="Vare" sortable />
           <Column field="category" header="Kategori" sortable filter filterMatchMode="contains" />
           <Column field="placement" header="Plassering" sortable />
           <Column field="expirationDate" header="Utløpsdato" sortable>
             <template #body="{ data }">
-              {{ new Date(data.expirationDate).toLocaleDateString() }}
+              {{data.expirationDate ? new Date(data.expirationDate).toLocaleDateString() : 'N/A' }}
             </template>
           </Column>
           <Column field="daysUntilExpiration" header="Dager igjen" sortable>
@@ -91,7 +105,13 @@ const getExpirationLabel = (item: GroceryItem) => {
         </DataTable>
       </div>
     </div>
+
+    <Dialog v-model:visible="dialogVisible">
+      <EditGrocery gorceryItem="selectedArticle"></EditGrocery>
+    </Dialog>
   </div>
+
+
 </template>
 
 <style scoped>
