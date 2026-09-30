@@ -1,8 +1,9 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  // Hash history keeps client-side routes working on static hosts such as GitHub Pages.
+  history: createWebHashHistory(),
   routes: [
     {
       path: '/',

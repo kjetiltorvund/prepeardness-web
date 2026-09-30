@@ -37,3 +37,20 @@ yarn build
 ```sh
 yarn lint
 ```
+
+## Deploy to GitHub Pages
+
+The workflow in `.github/workflows/deploy.yml` builds and deploys the app whenever
+changes are pushed to `main`. The site is published at:
+
+`https://kjetiltorvund.github.io/prepeardness-web/`
+
+Before deploying, configure the public HTTPS URL of the backend API:
+
+1. Open the repository on GitHub and go to **Settings > Secrets and variables > Actions**.
+2. Select **Variables**, add a repository variable named `VITE_BASE_URL`, and set it to
+   the backend API URL.
+3. Go to **Settings > Pages** and select **GitHub Actions** as the source.
+
+GitHub Pages hosts only the compiled frontend. The backend must be hosted separately
+and configured to allow requests from the GitHub Pages origin.
