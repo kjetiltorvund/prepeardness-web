@@ -2,31 +2,29 @@ import { ref, type Ref } from 'vue'
 import api from './api'
 import type { GroceryItem } from '../models/GroceryItem'
 
-const API_URL = 'http://your-backend-url/api'
-
 export function useGroceryService() {
   const groceries: Ref<GroceryItem[]> = ref([
     // Example data; replace with real data or fetch from API
     {
       id: 1,
-      name: 'Milk',
+      article_name: 'Milk',
       expirationDate: '2025-05-03',
       category: 'Dairy',
       quantity: 2,
       unit: 'L',
-      isExpired: false,
+      expired: false,
       daysUntilExpiration: 2,
       placement: 'Fridge',
       active: true,
     },
     {
       id: 2,
-      name: 'Bread',
+      article_name: 'Bread',
       expirationDate: '2025-05-01',
       category: 'Bakery',
       quantity: 1,
       unit: 'Loaf',
-      isExpired: true,
+      expired: true,
       daysUntilExpiration: 0,
       placement: 'Pantry',
       active: true,
@@ -40,7 +38,7 @@ export function useGroceryService() {
     error.value = null
 
     try {
-      const response = await api.get(`${API_URL}/groceries/expiring`)
+      const response = await api.get(`/groceries/expiring`)
       if (response.status !== 200) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }

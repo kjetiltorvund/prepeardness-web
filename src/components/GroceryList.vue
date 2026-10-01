@@ -10,21 +10,52 @@ import ProgressSpinner from 'primevue/progressspinner'
 import Message from 'primevue/message'
 import Toast from 'primevue/toast'
 import Tag from 'primevue/tag'
+import Dialog from 'primevue/dialog'
 import EditGrocery from './EditGrocery.vue'
+import { useToast } from 'primevue/usetoast';
 
 const groceryStore = useGroceryStore()
 const { groceries, loading, error } = storeToRefs(groceryStore)
+
+const toast = useToast();
 
 onMounted(() => {
   groceryStore.fetchGroceries()
 })
 
-const selectedArticle = ref();
-const dialogVisible = ref(false);
+const selectedArticle = ref<GroceryItem | null>(null)
+const dialogVisible = ref(false)
 
-const onRowSelect = (event) => {
+const onRowSelect = (event: { data: GroceryItem }) => {
   selectedArticle.value = event.data
   dialogVisible.value = true
+}
+
+const closeDialog = () => {
+  console.log("Closing dialog")
+  dialogVisible.value = false
+}
+
+const onSave = (updatedItem: GroceryItem) => {
+  console.log("onSave")
+  console.log(updatedItem)
+  if (selectedArticle.value) {
+    Object.assign(selectedArticle.value, updatedItem)
+  }
+
+  if (selectedArticle.value != null) {
+    var result = groceryStore.updateGrocery(updatedItem)
+
+    console.log(result)
+    dialogVisible.value = false
+  }
+  else {
+    toast.add({ severity: 'error', summary: 'Kunne ikke oppdatere varen', detail: 'En feil oppstod som førte til at varen ikke ble oppdatert.', life: 3000 })
+
+  }
+
+
+
 }
 
 const getTagSeverity = (item: GroceryItem) => {
@@ -41,7 +72,7 @@ const getTagSeverity = (item: GroceryItem) => {
 }
 
 const getExpirationLabel = (item: GroceryItem) => {
-  if (item.isExpired) {
+  if (item.expired) {
     return 'Utløpt'
   } else if (item.daysUntilExpiration === 0) {
     return 'Utløper i dag'
@@ -68,25 +99,16 @@ const getExpirationLabel = (item: GroceryItem) => {
       </div>
 
       <div v-else>
-        <DataTable
-          :value="groceries"
-          :paginator="true"
-          :rows="50"
-          :rowsPerPageOptions="[5, 10, 25, 50]"
-          tableStyle="min-width: 50rem"
-          stripedRows
-          sortField="daysUntilExpiration"
-          :sortOrder="1"
-          filterDisplay="menu"
-          selectionMode="single"
-          v-model:selection="selectedArticle"
-        >
+        <DataTable :value="groceries" :paginator="true" :rows="50" :rowsPerPageOptions="[5, 10, 25, 50]"
+          tableStyle="min-width: 50rem" stripedRows sortField="daysUntilExpiration" :sortOrder="1" filterDisplay="menu"
+          selectionMode="single" v-model:selection="selectedArticle" @rowSelect="onRowSelect">
+          <Column field="id" header="ID" sortable />
           <Column field="article_name" header="Vare" sortable />
           <Column field="category" header="Kategori" sortable filter filterMatchMode="contains" />
           <Column field="placement" header="Plassering" sortable />
           <Column field="expirationDate" header="Utløpsdato" sortable>
             <template #body="{ data }">
-              {{data.expirationDate ? new Date(data.expirationDate).toLocaleDateString() : 'N/A' }}
+              {{ data.expirationDate ? new Date(data.expirationDate).toLocaleDateString() : 'N/A' }}
             </template>
           </Column>
           <Column field="daysUntilExpiration" header="Dager igjen" sortable>
@@ -106,8 +128,8 @@ const getExpirationLabel = (item: GroceryItem) => {
       </div>
     </div>
 
-    <Dialog v-model:visible="dialogVisible">
-      <EditGrocery gorceryItem="selectedArticle"></EditGrocery>
+    <Dialog v-model:visible="dialogVisible" header="Rediger vare" modal>
+      <EditGrocery v-if="selectedArticle" :grocery-item="selectedArticle" @save="onSave" @close="closeDialog" />
     </Dialog>
   </div>
 
@@ -118,11 +140,13 @@ const getExpirationLabel = (item: GroceryItem) => {
 .grocery-container {
   padding: 1rem;
 }
+
 .loading-spinner {
   display: flex;
   justify-content: center;
   margin: 2rem 0;
 }
+
 .error-message {
   margin: 1rem 0;
 }
