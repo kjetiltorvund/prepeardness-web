@@ -10,7 +10,7 @@ import ProgressSpinner from 'primevue/progressspinner'
 import Message from 'primevue/message'
 import Toast from 'primevue/toast'
 import Tag from 'primevue/tag'
-import Dialog from 'primevue/dialog'
+import Sidebar from 'primevue/sidebar'
 import EditGrocery from './EditGrocery.vue'
 import { useToast } from 'primevue/usetoast';
 
@@ -24,16 +24,11 @@ onMounted(() => {
 })
 
 const selectedArticle = ref<GroceryItem | null>(null)
-const dialogVisible = ref(false)
+const sidebarVisible = ref(false)
 
 const onRowSelect = (event: { data: GroceryItem }) => {
   selectedArticle.value = event.data
-  dialogVisible.value = true
-}
-
-const closeDialog = () => {
-  console.log("Closing dialog")
-  dialogVisible.value = false
+  sidebarVisible.value = true
 }
 
 const onSave = (updatedItem: GroceryItem) => {
@@ -47,7 +42,7 @@ const onSave = (updatedItem: GroceryItem) => {
     var result = groceryStore.updateGrocery(updatedItem)
 
     console.log(result)
-    dialogVisible.value = false
+    sidebarVisible.value = false
   }
   else {
     toast.add({ severity: 'error', summary: 'Kunne ikke oppdatere varen', detail: 'En feil oppstod som førte til at varen ikke ble oppdatert.', life: 3000 })
@@ -128,9 +123,9 @@ const getExpirationLabel = (item: GroceryItem) => {
       </div>
     </div>
 
-    <Dialog v-model:visible="dialogVisible" header="Rediger vare" modal>
-      <EditGrocery v-if="selectedArticle" :grocery-item="selectedArticle" @save="onSave" @close="closeDialog" />
-    </Dialog>
+    <Sidebar v-model:visible="sidebarVisible" header="Rediger vare" position="right">
+      <EditGrocery v-if="selectedArticle" :grocery-item="selectedArticle" @save="onSave" />
+    </Sidebar>
   </div>
 
 
