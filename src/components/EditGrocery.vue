@@ -98,6 +98,15 @@ function submit() {
       <small id="placement-help"></small>
     </div>
 
+    <div class="flex flex-column gap-2">
+      <label for="barcode">Strekkode</label>
+      <IconField iconPosition="left">
+        <InputIcon class="pi pi-barcode"></InputIcon>
+        <InputText id="barcode" type="text" inputmode="numeric" v-model="editableItem.barcode" />
+      </IconField>
+      <small id="barcode-help"></small>
+    </div>
+
     <Button type="submit" label="Lagre" icon="pi pi-check" :loading="saving" />
   </form>
 </template>

@@ -51,22 +51,11 @@ export function useGroceryService() {
     }
   }
 
-  const addGroceryItem = async (item: GroceryItem) => {
-    try {
-      // Headers automatically added by interceptor
-      const response = await api.post('/groceries', toGroceryPayload(item))
-      return response.data
-    } catch (error) {
-      // Handle error
-      console.error('Error adding a grocery item', error)
-    }
-  }
 
   return {
     groceries,
     loading,
     error,
-    fetchExpiringGroceries,
-    addGroceryItem,
+    fetchExpiringGroceries
   }
 }
