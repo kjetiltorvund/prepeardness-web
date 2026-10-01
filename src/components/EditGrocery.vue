@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
 
@@ -7,6 +7,7 @@ import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 
 import Button from 'primevue/button'
+import DatePicker from 'primevue/datepicker'
 
 import { type GroceryItem, createDefault } from '../models/GroceryItem'
 
@@ -26,6 +27,32 @@ const emit = defineEmits<{
 }>()
 
 const editableItem = ref<GroceryItem>(createDefault())
+
+const expirationDate = computed<Date | null>({
+  get: () => {
+    const value = editableItem.value.expirationDate
+    if (!value) return null
+
+    const dateOnly = /^([0-9]{4})-([0-9]{2})-([0-9]{2})/.exec(value)
+    if (dateOnly) {
+      return new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]))
+    }
+
+    const date = new Date(value)
+    return Number.isNaN(date.getTime()) ? null : date
+  },
+  set: (date) => {
+    if (!date) {
+      editableItem.value.expirationDate = ''
+      return
+    }
+
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    editableItem.value.expirationDate = year + '-' + month + '-' + day
+  },
+})
 
 watch(
   () => props.groceryItem,
@@ -53,7 +80,7 @@ function submit() {
       <label for="expirationDate">Utløpsdato</label>
       <IconField iconPosition="left">
         <InputIcon class="pi pi-shopping-cart"></InputIcon>
-        <InputText id="expirationDate" type="text" v-model="editableItem.expirationDate" />
+        <DatePicker id="expirationDate" v-model="expirationDate" />
       </IconField>
       <small id="expirationDate-help"></small>
     </div>

@@ -10,7 +10,7 @@ import ProgressSpinner from 'primevue/progressspinner'
 import Message from 'primevue/message'
 import Toast from 'primevue/toast'
 import Tag from 'primevue/tag'
-import Sidebar from 'primevue/sidebar'
+import Drawer from 'primevue/drawer'
 import EditGrocery from './EditGrocery.vue'
 import { useToast } from 'primevue/usetoast';
 
@@ -123,9 +123,9 @@ const getExpirationLabel = (item: GroceryItem) => {
       </div>
     </div>
 
-    <Sidebar v-model:visible="sidebarVisible" header="Rediger vare" position="right">
+    <Drawer v-model:visible="sidebarVisible" header="Rediger vare" position="right">
       <EditGrocery v-if="selectedArticle" :grocery-item="selectedArticle" @save="onSave" />
-    </Sidebar>
+    </Drawer>
   </div>
 
 
