@@ -1,7 +1,10 @@
 export interface GroceryItem {
   id?: number;
+  barcode?: string | null;
+  created_at?: string | null;
+  qr_code?: string | null;
   article_name: string;
-  expirationDate: string;
+  expiration_date: string | null;
   category: string;
   quantity: number;
   unit: string;
@@ -9,6 +12,32 @@ export interface GroceryItem {
   daysUntilExpiration: number;
   placement: string;
   active: boolean;
+}
+
+export interface GroceryPayload {
+  id?: number
+  barcode: string | null
+  active: boolean
+  expired: boolean
+  placement: string | null
+  article_name: string
+  created_at: string | null
+  expiration_date: string | null
+  qr_code: string | null
+}
+
+export function toGroceryPayload(item: GroceryItem): GroceryPayload {
+  return {
+    id: item.id,
+    barcode: item.barcode ?? null,
+    active: item.active,
+    expired: item.expired,
+    placement: item.placement || null,
+    article_name: item.article_name,
+    created_at: item.created_at ?? null,
+    expiration_date: item.expiration_date || null,
+    qr_code: item.qr_code ?? null,
+  }
 }
 
 export enum ExpirationStatus {
@@ -19,7 +48,9 @@ export enum ExpirationStatus {
 }
 
 export function getExpirationStatus(groceryItem: GroceryItem): ExpirationStatus {
-  if (groceryItem.expired) {
+  if (!groceryItem.expiration_date) {
+    return ExpirationStatus.UNKNOWN;
+  } else if (groceryItem.expired) {
     return ExpirationStatus.EXPIRED;
   } else if (groceryItem.daysUntilExpiration <= 3) {
     return ExpirationStatus.EXPIRING_SOON;
@@ -31,7 +62,7 @@ export function getExpirationStatus(groceryItem: GroceryItem): ExpirationStatus 
 export function createDefault(): GroceryItem {
   return {
     article_name: '',
-    expirationDate: '',
+    expiration_date: null,
     category: '',
     quantity: 0,
     unit: '',

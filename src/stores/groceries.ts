@@ -1,7 +1,8 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import api from '@/services/api'
-import type { GroceryItem } from '@/models/GroceryItem'
+import { toGroceryPayload, type GroceryItem } from '@/models/GroceryItem'
+import { parseUtcDateTime } from '@/utils/dateTime'
 
 export const useGroceryStore = defineStore('groceries', () => {
   const groceries = ref<GroceryItem[]>([])
@@ -19,6 +20,17 @@ export const useGroceryStore = defineStore('groceries', () => {
     try {
       const response = await api.get<GroceryItem[]>('/articles')
       groceries.value = response.data
+
+      var now = new Date()
+
+      for (const item of groceries.value) {
+        const expirationDate = parseUtcDateTime(item.expiration_date)
+        item.expired = expirationDate ? expirationDate < now : false
+        item.daysUntilExpiration = expirationDate
+          ? Math.max(0, Math.ceil((expirationDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+          : 0
+      }
+
       loaded.value = true
     } catch (cause) {
       error.value = cause instanceof Error ? cause.message : 'Could not load groceries'
@@ -34,7 +46,7 @@ export const useGroceryStore = defineStore('groceries', () => {
 
     updating.value = true
     try {
-      const response = await api.put<GroceryItem>('/articles', updatedItem)
+      const response = await api.put<GroceryItem>('/articles', toGroceryPayload(updatedItem))
       const savedItem = { ...updatedItem, ...response.data }
       const index = groceries.value.findIndex((item) => item.id === updatedItem.id)
 

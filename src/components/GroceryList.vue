@@ -13,9 +13,10 @@ import Tag from 'primevue/tag'
 import Drawer from 'primevue/drawer'
 import EditGrocery from './EditGrocery.vue'
 import { useToast } from 'primevue/usetoast';
+import { formatLocalDate } from '@/utils/dateTime'
 
 const groceryStore = useGroceryStore()
-const { groceries, loading, error } = storeToRefs(groceryStore)
+const { groceries, loading, error, updating } = storeToRefs(groceryStore)
 
 const toast = useToast();
 
@@ -31,26 +32,23 @@ const onRowSelect = (event: { data: GroceryItem }) => {
   sidebarVisible.value = true
 }
 
-const onSave = (updatedItem: GroceryItem) => {
-  console.log("onSave")
-  console.log(updatedItem)
-  if (selectedArticle.value) {
-    Object.assign(selectedArticle.value, updatedItem)
-  }
-
-  if (selectedArticle.value != null) {
-    var result = groceryStore.updateGrocery(updatedItem)
-
-    console.log(result)
+const onSave = async (updatedItem: GroceryItem) => {
+  try {
+    await groceryStore.updateGrocery(updatedItem)
     sidebarVisible.value = false
+    toast.add({
+      severity: 'success',
+      summary: 'Varen ble oppdatert',
+      life: 3000,
+    })
+  } catch (cause) {
+    toast.add({
+      severity: 'error',
+      summary: 'Kunne ikke oppdatere varen',
+      detail: cause instanceof Error ? cause.message : 'En ukjent feil oppstod.',
+      life: 3000,
+    })
   }
-  else {
-    toast.add({ severity: 'error', summary: 'Kunne ikke oppdatere varen', detail: 'En feil oppstod som førte til at varen ikke ble oppdatert.', life: 3000 })
-
-  }
-
-
-
 }
 
 const getTagSeverity = (item: GroceryItem) => {
@@ -61,13 +59,17 @@ const getTagSeverity = (item: GroceryItem) => {
       return 'danger'
     case ExpirationStatus.EXPIRING_SOON:
       return 'warning'
+    case ExpirationStatus.UNKNOWN:
+      return 'secondary'
     default:
       return 'success'
   }
 }
 
 const getExpirationLabel = (item: GroceryItem) => {
-  if (item.expired) {
+  if (!item.expiration_date) {
+    return 'Ingen utløpsdato'
+  } else if (item.expired) {
     return 'Utløpt'
   } else if (item.daysUntilExpiration === 0) {
     return 'Utløper i dag'
@@ -101,9 +103,9 @@ const getExpirationLabel = (item: GroceryItem) => {
           <Column field="article_name" header="Vare" sortable />
           <Column field="category" header="Kategori" sortable filter filterMatchMode="contains" />
           <Column field="placement" header="Plassering" sortable />
-          <Column field="expirationDate" header="Utløpsdato" sortable>
+          <Column field="expiration_date" header="Utløpsdato" sortable>
             <template #body="{ data }">
-              {{ data.expirationDate ? new Date(data.expirationDate).toLocaleDateString() : 'N/A' }}
+              {{ formatLocalDate(data.expiration_date) }}
             </template>
           </Column>
           <Column field="daysUntilExpiration" header="Dager igjen" sortable>
@@ -124,7 +126,7 @@ const getExpirationLabel = (item: GroceryItem) => {
     </div>
 
     <Drawer v-model:visible="sidebarVisible" header="Rediger vare" position="right">
-      <EditGrocery v-if="selectedArticle" :grocery-item="selectedArticle" @save="onSave" />
+      <EditGrocery v-if="selectedArticle" :grocery-item="selectedArticle" :saving="updating" @save="onSave" />
     </Drawer>
   </div>
 

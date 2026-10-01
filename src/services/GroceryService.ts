@@ -1,6 +1,6 @@
 import { ref, type Ref } from 'vue'
 import api from './api'
-import type { GroceryItem } from '../models/GroceryItem'
+import { toGroceryPayload, type GroceryItem } from '../models/GroceryItem'
 
 export function useGroceryService() {
   const groceries: Ref<GroceryItem[]> = ref([
@@ -8,7 +8,7 @@ export function useGroceryService() {
     {
       id: 1,
       article_name: 'Milk',
-      expirationDate: '2025-05-03',
+      expiration_date: '2025-05-03T00:00:00.000+00:00',
       category: 'Dairy',
       quantity: 2,
       unit: 'L',
@@ -20,7 +20,7 @@ export function useGroceryService() {
     {
       id: 2,
       article_name: 'Bread',
-      expirationDate: '2025-05-01',
+      expiration_date: '2025-05-01T00:00:00.000+00:00',
       category: 'Bakery',
       quantity: 1,
       unit: 'Loaf',
@@ -54,7 +54,7 @@ export function useGroceryService() {
   const addGroceryItem = async (item: GroceryItem) => {
     try {
       // Headers automatically added by interceptor
-      const response = await api.post('/groceries', item)
+      const response = await api.post('/groceries', toGroceryPayload(item))
       return response.data
     } catch (error) {
       // Handle error
@@ -67,5 +67,6 @@ export function useGroceryService() {
     loading,
     error,
     fetchExpiringGroceries,
+    addGroceryItem,
   }
 }

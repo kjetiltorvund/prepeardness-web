@@ -10,6 +10,7 @@ import Button from 'primevue/button'
 import DatePicker from 'primevue/datepicker'
 
 import { type GroceryItem, createDefault } from '../models/GroceryItem'
+import { parseUtcDateTime, toUtcDateTime } from '@/utils/dateTime'
 
 const props = withDefaults(
   defineProps<{
@@ -29,28 +30,9 @@ const emit = defineEmits<{
 const editableItem = ref<GroceryItem>(createDefault())
 
 const expirationDate = computed<Date | null>({
-  get: () => {
-    const value = editableItem.value.expirationDate
-    if (!value) return null
-
-    const dateOnly = /^([0-9]{4})-([0-9]{2})-([0-9]{2})/.exec(value)
-    if (dateOnly) {
-      return new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]))
-    }
-
-    const date = new Date(value)
-    return Number.isNaN(date.getTime()) ? null : date
-  },
+  get: () => parseUtcDateTime(editableItem.value.expiration_date),
   set: (date) => {
-    if (!date) {
-      editableItem.value.expirationDate = ''
-      return
-    }
-
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    editableItem.value.expirationDate = year + '-' + month + '-' + day
+    editableItem.value.expiration_date = date ? toUtcDateTime(date) : null
   },
 })
 
@@ -71,7 +53,7 @@ function submit() {
     <div class="flex flex-column gap-2">
       <label for="article_name">Navn</label>
       <IconField iconPosition="left">
-        <InputIcon class="pi pi-shopping-cart"></InputIcon>
+        <InputIcon class="pi pi-user"></InputIcon>
         <InputText id="article_name" type="text" v-model="editableItem.article_name" />
       </IconField>
       <small id="article_name-help"></small>
@@ -79,27 +61,30 @@ function submit() {
     <div class="flex flex-column gap-2">
       <label for="expirationDate">Utløpsdato</label>
       <IconField iconPosition="left">
-        <InputIcon class="pi pi-shopping-cart"></InputIcon>
-        <DatePicker id="expirationDate" v-model="expirationDate" />
+        <InputIcon class="pi pi-calendar"></InputIcon>
+        <DatePicker id="expirationDate" v-model="expirationDate" dateFormat="dd.mm.yy" />
       </IconField>
       <small id="expirationDate-help"></small>
     </div>
     <div class="flex flex-column gap-2">
       <label for="category">Kategori</label>
       <IconField iconPosition="left">
-        <InputIcon class="pi pi-shopping-cart"></InputIcon>
+        <InputIcon class="pi pi-tag"></InputIcon>
         <InputText id="category" type="text" v-model="editableItem.category" />
       </IconField>
       <small id="category-help"></small>
     </div>
     <div class="flex flex-column gap-2">
       <label for="quantity">Antall</label>
-      <InputNumber id="quantity" v-model="editableItem.quantity" :min="0" />
+      <IconField iconPosition="left">
+        <InputIcon class="pi pi-shopping-cart"></InputIcon>
+        <InputNumber id="quantity" v-model="editableItem.quantity" :min="0" />
+      </IconField>
     </div>
     <div class="flex flex-column gap-2">
       <label for="unit">Enhet</label>
       <IconField iconPosition="left">
-        <InputIcon class="pi pi-shopping-cart"></InputIcon>
+        <InputIcon class="pi pi-gauge"></InputIcon>
         <InputText id="unit" type="text" v-model="editableItem.unit" />
       </IconField>
       <small id="unit-help"></small>
@@ -107,7 +92,7 @@ function submit() {
     <div class="flex flex-column gap-2">
       <label for="placement">Plassering</label>
       <IconField iconPosition="left">
-        <InputIcon class="pi pi-shopping-cart"></InputIcon>
+        <InputIcon class="pi pi-map-marker"></InputIcon>
         <InputText id="placement" type="text" v-model="editableItem.placement" />
       </IconField>
       <small id="placement-help"></small>

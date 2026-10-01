@@ -21,7 +21,7 @@
           <td>{{ item.category }}</td>
           <td>{{ item.quantity }}</td>
           <td>{{ item.unit }}</td>
-          <td>{{ item.expirationDate }}</td>
+          <td>{{ formatLocalDate(item.expiration_date) }}</td>
           <td>{{ getExpirationStatus(item) }}</td>
           <td>{{ item.placement }}</td>
         </tr>
@@ -35,6 +35,7 @@ import { onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { getExpirationStatus } from '@/models/GroceryItem'
 import { useGroceryStore } from '@/stores/groceries'
+import { formatLocalDate } from '@/utils/dateTime'
 
 const groceryStore = useGroceryStore()
 const { groceries: groceryItems, loading, error } = storeToRefs(groceryStore)
