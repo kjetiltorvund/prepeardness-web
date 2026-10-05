@@ -1,13 +1,13 @@
 import { ref, type Ref } from 'vue'
 import api from './api'
-import { toGroceryPayload, type GroceryItem } from '../models/GroceryItem'
+import { toInventoryItemPayload, type InventoryItem } from '../models/InventoryItem'
 
-export function useGroceryService() {
-  const groceries: Ref<GroceryItem[]> = ref([
+export function useInventoryService() {
+  const items: Ref<InventoryItem[]> = ref([
     // Example data; replace with real data or fetch from API
     {
       id: 1,
-      article_name: 'Milk',
+      name: 'Milk',
       expiration_date: '2025-05-03T00:00:00.000+00:00',
       category: 'Dairy',
       quantity: 2,
@@ -19,7 +19,7 @@ export function useGroceryService() {
     },
     {
       id: 2,
-      article_name: 'Bread',
+      name: 'Bread',
       expiration_date: '2025-05-01T00:00:00.000+00:00',
       category: 'Bakery',
       quantity: 1,
@@ -33,19 +33,19 @@ export function useGroceryService() {
   const loading: Ref<boolean> = ref(false)
   const error: Ref<string | null> = ref(null)
 
-  const fetchExpiringGroceries = async () => {
+  const fetchExpiringItems = async () => {
     loading.value = true
     error.value = null
 
     try {
-      const response = await api.get(`/groceries/expiring`)
+      const response = await api.get(`/items/expiring`)
       if (response.status !== 200) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
-      groceries.value = await response.data
+      items.value = await response.data
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Unknown error occurred'
-      console.error('Error fetching groceries:', e)
+      console.error('Error fetching items:', e)
     } finally {
       loading.value = false
     }
@@ -53,9 +53,9 @@ export function useGroceryService() {
 
 
   return {
-    groceries,
+    items,
     loading,
     error,
-    fetchExpiringGroceries
+    fetchExpiringItems
   }
 }

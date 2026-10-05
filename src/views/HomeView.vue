@@ -1,14 +1,14 @@
 <template>
   <div class="home">
-    <GroceryList />
+    <InventoryList />
 
     <Button class="add-button" icon="pi pi-plus" rounded size="large" aria-label="Legg til vare"
       @click="scanVisible = true" />
 
-    <ScanGrocery v-model:visible="scanVisible" @scanned="openEditor" @manual="openEditor(createDefault())" />
+    <ScanItem v-model:visible="scanVisible" @scanned="openEditor" @manual="openEditor(createDefault())" />
 
     <Drawer v-model:visible="drawerVisible" header="Legg til vare" position="right">
-      <EditGrocery v-if="newItem" :grocery-item="newItem" :saving="updating" @save="onSave" />
+      <EditItem v-if="newItem" :item="newItem" :saving="updating" @save="onSave" />
     </Drawer>
   </div>
 </template>
@@ -16,29 +16,29 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import GroceryList from '@/components/GroceryList.vue'
-import EditGrocery from '@/components/EditGrocery.vue'
-import ScanGrocery from '@/components/ScanGrocery.vue'
+import InventoryList from '@/components/InventoryList.vue'
+import EditItem from '@/components/EditItem.vue'
+import ScanItem from '@/components/ScanItem.vue'
 import Drawer from 'primevue/drawer'
 import Button from 'primevue/button'
 import { useToast } from 'primevue/usetoast'
-import { type GroceryItem, createDefault } from '@/models/GroceryItem'
-import { useGroceryStore } from '@/stores/groceries'
+import { type InventoryItem, createDefault } from '@/models/InventoryItem'
+import { useInventoryStore } from '@/stores/inventory'
 
-const groceryStore = useGroceryStore()
-const { updating } = storeToRefs(groceryStore)
+const inventoryStore = useInventoryStore()
+const { updating } = storeToRefs(inventoryStore)
 const toast = useToast()
 
 const scanVisible = ref(false)
 const drawerVisible = ref(false)
-const newItem = ref<GroceryItem | null>(null)
+const newItem = ref<InventoryItem | null>(null)
 
-function openEditor(item: GroceryItem) {
+function openEditor(item: InventoryItem) {
   newItem.value = item
   scanVisible.value = false
   drawerVisible.value = true
 
-  if (item.barcode && !item.article_name) {
+  if (item.barcode && !item.name) {
     toast.add({
       severity: 'info',
       summary: 'Fant ikke produktinfo',
@@ -48,11 +48,19 @@ function openEditor(item: GroceryItem) {
   }
 }
 
-async function onSave(item: GroceryItem) {
+async function onSave(item: InventoryItem) {
   try {
-    await groceryStore.createGrocery(item)
+    const { replacedIds } = await inventoryStore.createItem(item)
     drawerVisible.value = false
-    toast.add({ severity: 'success', summary: 'Varen ble lagt til', life: 3000 })
+    toast.add({
+      severity: 'success',
+      summary: 'Varen ble lagt til',
+      detail:
+        replacedIds.length > 0
+          ? `Erstattet ${replacedIds.length} utløpt${replacedIds.length === 1 ? '' : 'e'} vare${replacedIds.length === 1 ? '' : 'r'}.`
+          : undefined,
+      life: 4000,
+    })
   } catch (cause) {
     toast.add({
       severity: 'error',

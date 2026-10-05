@@ -1,9 +1,9 @@
-export interface GroceryItem {
+export interface InventoryItem {
   id?: number;
   barcode?: string | null;
   created_at?: string | null;
   qr_code?: string | null;
-  article_name: string;
+  name: string;
   expiration_date: string | null;
   category: string;
   quantity: number;
@@ -12,28 +12,35 @@ export interface GroceryItem {
   daysUntilExpiration: number;
   placement: string;
   active: boolean;
+  replaced?: boolean;
 }
 
-export interface GroceryPayload {
+export interface InventoryItemPayload {
   id?: number
   barcode: string | null
   active: boolean
   expired: boolean
   placement: string | null
-  article_name: string
+  name: string
   created_at: string | null
   expiration_date: string | null
   qr_code: string | null
 }
 
-export function toGroceryPayload(item: GroceryItem): GroceryPayload {
+/** Response from POST /items. Expired items with the same barcode are removed by the backend. */
+export interface CreateItemResponse {
+  item: InventoryItem
+  replaced_ids: number[]
+}
+
+export function toInventoryItemPayload(item: InventoryItem): InventoryItemPayload {
   return {
     id: item.id,
     barcode: item.barcode ?? null,
     active: item.active,
     expired: item.expired,
     placement: item.placement || null,
-    article_name: item.article_name,
+    name: item.name,
     created_at: item.created_at ?? null,
     expiration_date: item.expiration_date || null,
     qr_code: item.qr_code ?? null,
@@ -47,21 +54,21 @@ export enum ExpirationStatus {
   UNKNOWN = 'unknown'
 }
 
-export function getExpirationStatus(groceryItem: GroceryItem): ExpirationStatus {
-  if (!groceryItem.expiration_date) {
+export function getExpirationStatus(item: InventoryItem): ExpirationStatus {
+  if (!item.expiration_date) {
     return ExpirationStatus.UNKNOWN;
-  } else if (groceryItem.expired) {
+  } else if (item.expired) {
     return ExpirationStatus.EXPIRED;
-  } else if (groceryItem.daysUntilExpiration <= 3) {
+  } else if (item.daysUntilExpiration <= 3) {
     return ExpirationStatus.EXPIRING_SOON;
   } else {
     return ExpirationStatus.GOOD;
   }
 }
 
-export function createDefault(): GroceryItem {
+export function createDefault(): InventoryItem {
   return {
-    article_name: '',
+    name: '',
     expiration_date: null,
     category: '',
     quantity: 0,

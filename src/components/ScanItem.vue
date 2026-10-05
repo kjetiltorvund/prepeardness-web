@@ -6,13 +6,13 @@ import Button from 'primevue/button'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 
-import { type GroceryItem, createDefault } from '../models/GroceryItem'
+import { type InventoryItem, createDefault } from '../models/InventoryItem'
 import { lookupProduct } from '@/services/productLookup'
 
 const visible = defineModel<boolean>('visible', { required: true })
 
 const emit = defineEmits<{
-  scanned: [item: GroceryItem]
+  scanned: [item: InventoryItem]
   manual: []
 }>()
 
@@ -43,7 +43,7 @@ async function onDetect(codes: DetectedBarcode[]) {
     lookingUp.value = false
 
     if (product) {
-      item.article_name = product.name
+      item.name = product.name
       item.category = product.category ?? ''
       item.quantity = product.quantity ?? 0
       item.unit = product.unit ?? ''

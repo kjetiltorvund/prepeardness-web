@@ -9,25 +9,28 @@ import InputIcon from 'primevue/inputicon'
 import Button from 'primevue/button'
 import DatePicker from 'primevue/datepicker'
 
-import { type GroceryItem, createDefault } from '../models/GroceryItem'
+import { type InventoryItem, createDefault } from '../models/InventoryItem'
 import { parseUtcDateTime, toUtcDateTime } from '@/utils/dateTime'
 
 const props = withDefaults(
   defineProps<{
-    groceryItem?: GroceryItem
+    item?: InventoryItem
     saving?: boolean
+    deletable?: boolean
   }>(),
   {
-    groceryItem: createDefault,
+    item: createDefault,
     saving: false,
+    deletable: false,
   },
 )
 
 const emit = defineEmits<{
-  save: [item: GroceryItem]
+  save: [item: InventoryItem]
+  delete: [item: InventoryItem]
 }>()
 
-const editableItem = ref<GroceryItem>(createDefault())
+const editableItem = ref<InventoryItem>(createDefault())
 
 const expirationDate = computed<Date | null>({
   get: () => parseUtcDateTime(editableItem.value.expiration_date),
@@ -37,7 +40,7 @@ const expirationDate = computed<Date | null>({
 })
 
 watch(
-  () => props.groceryItem,
+  () => props.item,
   (item) => {
     editableItem.value = { ...item }
   },
@@ -51,12 +54,12 @@ function submit() {
 <template>
   <form @submit.prevent="submit">
     <div class="flex flex-column gap-2">
-      <label for="article_name">Navn</label>
+      <label for="name">Navn</label>
       <IconField iconPosition="left">
         <InputIcon class="pi pi-user"></InputIcon>
-        <InputText id="article_name" type="text" v-model="editableItem.article_name" />
+        <InputText id="name" type="text" v-model="editableItem.name" />
       </IconField>
-      <small id="article_name-help"></small>
+      <small id="name-help"></small>
     </div>
     <div class="flex flex-column gap-2">
       <label for="expirationDate">Utløpsdato</label>
@@ -107,6 +110,10 @@ function submit() {
       <small id="barcode-help"></small>
     </div>
 
-    <Button type="submit" label="Lagre" icon="pi pi-check" :loading="saving" />
+    <div class="flex gap-2">
+      <Button type="submit" label="Lagre" icon="pi pi-check" :loading="saving" />
+      <Button v-if="deletable" type="button" label="Slett" icon="pi pi-trash" severity="danger" outlined
+        :disabled="saving" @click="emit('delete', props.item)" />
+    </div>
   </form>
 </template>

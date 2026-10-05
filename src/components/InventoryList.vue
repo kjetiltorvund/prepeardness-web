@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useGroceryStore } from '@/stores/groceries'
-import { getExpirationStatus, ExpirationStatus, type GroceryItem } from '../models/GroceryItem'
+import { useInventoryStore } from '@/stores/inventory'
+import { getExpirationStatus, ExpirationStatus, type InventoryItem } from '../models/InventoryItem'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
@@ -11,30 +11,33 @@ import Message from 'primevue/message'
 import Toast from 'primevue/toast'
 import Tag from 'primevue/tag'
 import Drawer from 'primevue/drawer'
-import EditGrocery from './EditGrocery.vue'
+import ConfirmDialog from 'primevue/confirmdialog'
+import { useConfirm } from 'primevue/useconfirm'
+import EditItem from './EditItem.vue'
 import { useToast } from 'primevue/usetoast';
 import { formatLocalDate } from '@/utils/dateTime'
 
-const groceryStore = useGroceryStore()
-const { groceries, loading, error, updating } = storeToRefs(groceryStore)
+const inventoryStore = useInventoryStore()
+const { items, loading, error, updating } = storeToRefs(inventoryStore)
 
 const toast = useToast();
+const confirm = useConfirm()
 
 onMounted(() => {
-  groceryStore.fetchGroceries()
+  inventoryStore.fetchItems()
 })
 
-const selectedArticle = ref<GroceryItem | null>(null)
+const selectedItem = ref<InventoryItem | null>(null)
 const sidebarVisible = ref(false)
 
-const onRowSelect = (event: { data: GroceryItem }) => {
-  selectedArticle.value = event.data
+const onRowSelect = (event: { data: InventoryItem }) => {
+  selectedItem.value = event.data
   sidebarVisible.value = true
 }
 
-const onSave = async (updatedItem: GroceryItem) => {
+const onSave = async (updatedItem: InventoryItem) => {
   try {
-    await groceryStore.updateGrocery(updatedItem)
+    await inventoryStore.updateItem(updatedItem)
     sidebarVisible.value = false
     toast.add({
       severity: 'success',
@@ -51,7 +54,37 @@ const onSave = async (updatedItem: GroceryItem) => {
   }
 }
 
-const getTagSeverity = (item: GroceryItem) => {
+const onDelete = (item: InventoryItem) => {
+  if (item.id == null) return
+  const id = item.id
+
+  confirm.require({
+    header: 'Slett vare',
+    message: `Vil du slette «${item.name}»?`,
+    icon: 'pi pi-trash',
+    acceptProps: { label: 'Slett', severity: 'danger' },
+    rejectProps: { label: 'Avbryt', severity: 'secondary', outlined: true },
+    accept: async () => {
+      try {
+        await inventoryStore.deleteItem(id)
+        if (selectedItem.value?.id === id) {
+          sidebarVisible.value = false
+          selectedItem.value = null
+        }
+        toast.add({ severity: 'success', summary: 'Varen ble slettet', life: 3000 })
+      } catch (cause) {
+        toast.add({
+          severity: 'error',
+          summary: 'Kunne ikke slette varen',
+          detail: cause instanceof Error ? cause.message : 'En ukjent feil oppstod.',
+          life: 3000,
+        })
+      }
+    },
+  })
+}
+
+const getTagSeverity = (item: InventoryItem) => {
   const status = getExpirationStatus(item)
   console.log(status)
   switch (status) {
@@ -66,7 +99,7 @@ const getTagSeverity = (item: GroceryItem) => {
   }
 }
 
-const getExpirationLabel = (item: GroceryItem) => {
+const getExpirationLabel = (item: InventoryItem) => {
   if (!item.expiration_date) {
     return 'Ingen utløpsdato'
   } else if (item.expired) {
@@ -82,8 +115,9 @@ const getExpirationLabel = (item: GroceryItem) => {
 </script>
 
 <template>
-  <div class="grocery-container">
+  <div class="inventory-container">
     <Toast />
+    <ConfirmDialog />
     <div class="card">
       <h1>Varebeholdning</h1>
 
@@ -96,11 +130,11 @@ const getExpirationLabel = (item: GroceryItem) => {
       </div>
 
       <div v-else>
-        <DataTable :value="groceries" :paginator="true" :rows="50" :rowsPerPageOptions="[5, 10, 25, 50]"
+        <DataTable :value="items" :paginator="true" :rows="50" :rowsPerPageOptions="[5, 10, 25, 50]"
           tableStyle="min-width: 50rem" stripedRows sortField="daysUntilExpiration" :sortOrder="1" filterDisplay="menu"
-          selectionMode="single" v-model:selection="selectedArticle" @rowSelect="onRowSelect">
+          selectionMode="single" v-model:selection="selectedItem" @rowSelect="onRowSelect">
           <Column field="id" header="ID" sortable />
-          <Column field="article_name" header="Vare" sortable />
+          <Column field="name" header="Vare" sortable />
           <Column field="category" header="Kategori" sortable filter filterMatchMode="contains" />
           <Column field="placement" header="Plassering" sortable />
           <Column field="expiration_date" header="Utløpsdato" sortable>
@@ -117,8 +151,9 @@ const getExpirationLabel = (item: GroceryItem) => {
             <template #body="{ data }"> {{ data.quantity }} {{ data.unit }} </template>
           </Column>
           <Column header="Handling">
-            <template #body>
-              <Button icon="pi pi-check" rounded severity="success" aria-label="Mark as Used" />
+            <template #body="{ data }">
+              <Button icon="pi pi-trash" rounded text severity="danger" aria-label="Slett vare"
+                :disabled="updating" @click.stop="onDelete(data)" />
             </template>
           </Column>
         </DataTable>
@@ -126,7 +161,8 @@ const getExpirationLabel = (item: GroceryItem) => {
     </div>
 
     <Drawer v-model:visible="sidebarVisible" header="Rediger vare" position="right">
-      <EditGrocery v-if="selectedArticle" :grocery-item="selectedArticle" :saving="updating" @save="onSave" />
+      <EditItem v-if="selectedItem" :item="selectedItem" :saving="updating" deletable @save="onSave"
+        @delete="onDelete" />
     </Drawer>
   </div>
 
@@ -134,7 +170,7 @@ const getExpirationLabel = (item: GroceryItem) => {
 </template>
 
 <style scoped>
-.grocery-container {
+.inventory-container {
   padding: 1rem;
 }
 

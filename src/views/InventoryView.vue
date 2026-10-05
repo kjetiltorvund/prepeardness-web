@@ -1,7 +1,7 @@
 <template>
   <div>
-    <h1>Grocery List</h1>
-    <p v-if="loading">Loading groceries...</p>
+    <h1>Inventory</h1>
+    <p v-if="loading">Loading items...</p>
     <p v-else-if="error" role="alert">{{ error }}</p>
     <table>
       <thead>
@@ -16,8 +16,8 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="item in groceryItems" :key="item.id">
-          <td>{{ item.article_name }}</td>
+        <tr v-for="item in items" :key="item.id">
+          <td>{{ item.name }}</td>
           <td>{{ item.category }}</td>
           <td>{{ item.quantity }}</td>
           <td>{{ item.unit }}</td>
@@ -33,12 +33,12 @@
 <script lang="ts" setup>
 import { onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
-import { getExpirationStatus } from '@/models/GroceryItem'
-import { useGroceryStore } from '@/stores/groceries'
+import { getExpirationStatus } from '@/models/InventoryItem'
+import { useInventoryStore } from '@/stores/inventory'
 import { formatLocalDate } from '@/utils/dateTime'
 
-const groceryStore = useGroceryStore()
-const { groceries: groceryItems, loading, error } = storeToRefs(groceryStore)
+const inventoryStore = useInventoryStore()
+const { items, loading, error } = storeToRefs(inventoryStore)
 
-onMounted(() => groceryStore.fetchGroceries())
+onMounted(() => inventoryStore.fetchItems())
 </script>
