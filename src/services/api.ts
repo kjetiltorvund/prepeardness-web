@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { useAuthStore } from '@/stores/auth'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL as string
 
@@ -18,8 +19,8 @@ api.interceptors.request.use(
   (config) => {
     // Add common headers here
 
-    // Example: Add authentication token from localStorage
-    const token = localStorage.getItem('auth_token')
+    // Google ID token, validated by the backend
+    const { token } = useAuthStore()
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -48,16 +49,18 @@ api.interceptors.response.use(
   (error) => {
     // Any status codes outside the range of 2xx cause this function to trigger
 
-    // Example: Handle 401 Unauthorized globally
+    // Missing or expired token: sign in again and come back to the current page
     if (error.response && error.response.status === 401) {
-      // Redirect to login or refresh token
-      console.log('Unauthorized access - redirecting to login')
-      // router.push('/login');
+      useAuthStore().clearToken()
+      // Imported lazily, since the router indirectly imports this module
+      import('@/router').then(({ default: router }) => {
+        router.push({ name: 'login', query: { redirect: router.currentRoute.value.fullPath } })
+      })
     }
 
-    // Example: Handle 403 Forbidden
+    // Signed in, but the account is not on the backend's allowlist for this operation
     if (error.response && error.response.status === 403) {
-      console.log('Forbidden resource')
+      error.message = 'Kontoen din har ikke tilgang til dette.'
     }
 
     return Promise.reject(error)

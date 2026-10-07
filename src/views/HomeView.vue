@@ -1,5 +1,10 @@
 <template>
   <div class="home">
+    <div class="account">
+      <span v-if="user">{{ user.name ?? user.email }}</span>
+      <Button label="Logg ut" icon="pi pi-sign-out" size="small" text @click="onSignOut" />
+    </div>
+
     <InventoryList />
 
     <Button class="add-button" icon="pi pi-plus" rounded size="large" aria-label="Legg til vare"
@@ -24,10 +29,21 @@ import Button from 'primevue/button'
 import { useToast } from 'primevue/usetoast'
 import { type InventoryItem, createDefault } from '@/models/InventoryItem'
 import { useInventoryStore } from '@/stores/inventory'
+import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
 
 const inventoryStore = useInventoryStore()
 const { updating } = storeToRefs(inventoryStore)
+const authStore = useAuthStore()
+const { user } = storeToRefs(authStore)
+const router = useRouter()
 const toast = useToast()
+
+async function onSignOut() {
+  await authStore.signOut()
+  inventoryStore.reset()
+  router.push({ name: 'login' })
+}
 
 const scanVisible = ref(false)
 const drawerVisible = ref(false)
@@ -73,6 +89,14 @@ async function onSave(item: InventoryItem) {
 </script>
 
 <style scoped>
+.account {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
 .add-button {
   position: fixed;
   right: 1.5rem;

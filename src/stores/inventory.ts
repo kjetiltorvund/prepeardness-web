@@ -104,12 +104,20 @@ export const useInventoryStore = defineStore('inventory', () => {
     }
   }
 
+  // Drops cached items, e.g. when another user signs in
+  function reset() {
+    items.value = []
+    error.value = null
+    loaded.value = false
+  }
+
   return {
     items,
     loading,
     updating,
     error,
     fetchItems,
+    reset,
     createItem,
     updateItem,
     deleteItem,
