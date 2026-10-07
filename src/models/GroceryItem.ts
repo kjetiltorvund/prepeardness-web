@@ -12,7 +12,7 @@ export interface GroceryItem {
   daysUntilExpiration: number;
   placement: string;
   active: boolean;
-  replaced: boolean;
+  replaced?: boolean;
 }
 
 export interface GroceryPayload {
