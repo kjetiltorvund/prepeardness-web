@@ -30,7 +30,7 @@ export const useGroceryStore = defineStore('groceries', () => {
 
     try {
       const response = await api.get<GroceryItem[]>('/items')
-      groceries.value = response.data.map((item) => withExpiration(item))
+      groceries.value = response.data.map((item: GroceryItem) => withExpiration(item))
 
       loaded.value = true
     } catch (cause) {
@@ -49,7 +49,7 @@ export const useGroceryStore = defineStore('groceries', () => {
     try {
       const response = await api.put<GroceryItem>('/items', toGroceryPayload(updatedItem))
       const savedItem = withExpiration({ ...updatedItem, ...response.data })
-      const index = groceries.value.findIndex((item) => item.id === updatedItem.id)
+      const index = groceries.value.findIndex((item: GroceryItem) => item.id === updatedItem.id)
 
       if (index !== -1) {
         groceries.value[index] = savedItem

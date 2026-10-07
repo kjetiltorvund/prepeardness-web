@@ -77,5 +77,6 @@ export function createDefault(): GroceryItem {
     daysUntilExpiration: 0,
     placement: '',
     active: true,
+    replaced: false,
   }
 }

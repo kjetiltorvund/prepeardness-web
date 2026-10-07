@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useInventoryStore } from '@/stores/inventory'
 import { getExpirationStatus, ExpirationStatus, type InventoryItem } from '../models/InventoryItem'
@@ -16,9 +16,26 @@ import { useConfirm } from 'primevue/useconfirm'
 import EditItem from './EditItem.vue'
 import { useToast } from 'primevue/usetoast';
 import { formatLocalDate } from '@/utils/dateTime'
+import { useMediaQuery } from '@/composables/useMediaQuery'
 
 const inventoryStore = useInventoryStore()
 const { items, loading, error, updating } = storeToRefs(inventoryStore)
+
+const isMobile = useMediaQuery('(max-width: 768px)')
+
+// Soonest expiring first; items without an expiration date last
+const sortedItems = computed(() =>
+  [...items.value].sort((a, b) => {
+    if (!a.expiration_date !== !b.expiration_date) return a.expiration_date ? -1 : 1
+    if (a.expired !== b.expired) return a.expired ? -1 : 1
+    return a.daysUntilExpiration - b.daysUntilExpiration
+  }),
+)
+
+const openItem = (item: InventoryItem) => {
+  selectedItem.value = item
+  sidebarVisible.value = true
+}
 
 const toast = useToast();
 const confirm = useConfirm()
@@ -31,8 +48,7 @@ const selectedItem = ref<InventoryItem | null>(null)
 const sidebarVisible = ref(false)
 
 const onRowSelect = (event: { data: InventoryItem }) => {
-  selectedItem.value = event.data
-  sidebarVisible.value = true
+  openItem(event.data)
 }
 
 const onSave = async (updatedItem: InventoryItem) => {
@@ -86,7 +102,6 @@ const onDelete = (item: InventoryItem) => {
 
 const getTagSeverity = (item: InventoryItem) => {
   const status = getExpirationStatus(item)
-  console.log(status)
   switch (status) {
     case ExpirationStatus.EXPIRED:
       return 'danger'
@@ -129,6 +144,27 @@ const getExpirationLabel = (item: InventoryItem) => {
         <Message severity="error" :text="error" />
       </div>
 
+      <ul v-else-if="isMobile" class="item-list">
+        <li v-if="sortedItems.length === 0" class="empty">Ingen varer</li>
+        <li v-for="item in sortedItems" :key="item.id" class="item-card" role="button" tabindex="0"
+          @click="openItem(item)" @keydown.enter="openItem(item)">
+          <div class="item-main">
+            <div class="item-name">{{ item.name }}</div>
+            <div class="item-meta">
+              <span>{{ item.quantity }} {{ item.unit }}</span>
+              <span v-if="item.placement"><i class="pi pi-map-marker" /> {{ item.placement }}</span>
+              <span v-if="item.category"><i class="pi pi-tag" /> {{ item.category }}</span>
+            </div>
+            <div class="item-expiration">
+              <Tag :severity="getTagSeverity(item)" :value="getExpirationLabel(item)" />
+              <span v-if="item.expiration_date" class="item-date">{{ formatLocalDate(item.expiration_date) }}</span>
+            </div>
+          </div>
+          <Button icon="pi pi-trash" rounded text severity="danger" aria-label="Slett vare" :disabled="updating"
+            @click.stop="onDelete(item)" @keydown.enter.stop />
+        </li>
+      </ul>
+
       <div v-else>
         <DataTable :value="items" :paginator="true" :rows="50" :rowsPerPageOptions="[5, 10, 25, 50]"
           tableStyle="min-width: 50rem" stripedRows sortField="daysUntilExpiration" :sortOrder="1" filterDisplay="menu"
@@ -160,7 +196,8 @@ const getExpirationLabel = (item: InventoryItem) => {
       </div>
     </div>
 
-    <Drawer v-model:visible="sidebarVisible" header="Rediger vare" position="right">
+    <Drawer v-model:visible="sidebarVisible" header="Rediger vare" position="right"
+      :style="isMobile ? { width: '100%' } : undefined">
       <EditItem v-if="selectedItem" :item="selectedItem" :saving="updating" deletable @save="onSave"
         @delete="onDelete" />
     </Drawer>
@@ -182,5 +219,69 @@ const getExpirationLabel = (item: InventoryItem) => {
 
 .error-message {
   margin: 1rem 0;
+}
+
+.item-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.item-card {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--p-content-border-radius);
+  background: var(--p-content-background);
+  cursor: pointer;
+}
+
+.item-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.item-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--p-text-muted-color);
+}
+
+.item-expiration {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.item-date {
+  font-size: 0.875rem;
+  color: var(--p-text-muted-color);
+}
+
+.empty {
+  text-align: center;
+  color: var(--p-text-muted-color);
+  padding: 1rem;
+}
+
+@media (max-width: 768px) {
+  .inventory-container {
+    padding: 0.5rem;
+  }
 }
 </style>
