@@ -21,6 +21,9 @@ export interface InventoryItemPayload {
   active: boolean
   expired: boolean
   placement: string | null
+  category: string | null
+  quantity: number
+  unit: string | null
   name: string
   created_at: string | null
   expiration_date: string | null
@@ -40,6 +43,9 @@ export function toInventoryItemPayload(item: InventoryItem): InventoryItemPayloa
     active: item.active,
     expired: item.expired,
     placement: item.placement || null,
+    category: item.category || null,
+    quantity: item.quantity,
+    unit: item.unit || null,
     name: item.name,
     created_at: item.created_at ?? null,
     expiration_date: item.expiration_date || null,
