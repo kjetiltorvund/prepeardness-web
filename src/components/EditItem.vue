@@ -93,6 +93,13 @@ function submit() {
       <small id="unit-help"></small>
     </div>
     <div class="flex flex-column gap-2">
+      <label for="inventory">På lager</label>
+      <IconField iconPosition="left">
+        <InputIcon class="pi pi-box"></InputIcon>
+        <InputNumber id="inventory" v-model="editableItem.inventory" :min="0" />
+      </IconField>
+    </div>
+    <div class="flex flex-column gap-2">
       <label for="placement">Plassering</label>
       <IconField iconPosition="left">
         <InputIcon class="pi pi-map-marker"></InputIcon>

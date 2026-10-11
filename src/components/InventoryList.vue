@@ -152,6 +152,7 @@ const getExpirationLabel = (item: InventoryItem) => {
             <div class="item-name">{{ item.name }}</div>
             <div class="item-meta">
               <span>{{ item.quantity }} {{ item.unit }}</span>
+              <span v-if="item.inventory != null"><i class="pi pi-box" /> {{ item.inventory }} på lager</span>
               <span v-if="item.placement"><i class="pi pi-map-marker" /> {{ item.placement }}</span>
               <span v-if="item.category"><i class="pi pi-tag" /> {{ item.category }}</span>
             </div>
@@ -186,6 +187,7 @@ const getExpirationLabel = (item: InventoryItem) => {
           <Column field="quantity" header="Antall" sortable>
             <template #body="{ data }"> {{ data.quantity }} {{ data.unit }} </template>
           </Column>
+          <Column field="inventory" header="På lager" sortable />
           <Column header="Handling">
             <template #body="{ data }">
               <Button icon="pi pi-trash" rounded text severity="danger" aria-label="Slett vare"

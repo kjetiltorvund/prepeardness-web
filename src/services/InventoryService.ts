@@ -16,6 +16,7 @@ export function useInventoryService() {
       daysUntilExpiration: 2,
       placement: 'Fridge',
       active: true,
+      inventory: 1,
     },
     {
       id: 2,
@@ -28,6 +29,7 @@ export function useInventoryService() {
       daysUntilExpiration: 0,
       placement: 'Pantry',
       active: true,
+      inventory: 1,
     },
   ])
   const loading: Ref<boolean> = ref(false)

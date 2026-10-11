@@ -13,6 +13,7 @@ export interface InventoryItem {
   placement: string;
   active: boolean;
   replaced?: boolean;
+  inventory: number | null;
 }
 
 export interface InventoryItemPayload {
@@ -28,6 +29,7 @@ export interface InventoryItemPayload {
   created_at: string | null
   expiration_date: string | null
   qr_code: string | null
+  inventory: number | null
 }
 
 /** Response from POST /items. Expired items with the same barcode are removed by the backend. */
@@ -50,6 +52,7 @@ export function toInventoryItemPayload(item: InventoryItem): InventoryItemPayloa
     created_at: item.created_at ?? null,
     expiration_date: item.expiration_date || null,
     qr_code: item.qr_code ?? null,
+    inventory: item.inventory,
   }
 }
 
@@ -83,5 +86,7 @@ export function createDefault(): InventoryItem {
     daysUntilExpiration: 0,
     placement: '',
     active: true,
+    inventory: null,
+    replaced: false,
   }
 }
