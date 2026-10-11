@@ -78,7 +78,7 @@ function submit() {
       <small id="category-help"></small>
     </div>
     <div class="flex flex-column gap-2">
-      <label for="quantity">Antall</label>
+      <label for="quantity">Vekt</label>
       <IconField iconPosition="left">
         <InputIcon class="pi pi-shopping-cart"></InputIcon>
         <InputNumber id="quantity" v-model="editableItem.quantity" :min="0" />

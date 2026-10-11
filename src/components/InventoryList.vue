@@ -184,7 +184,7 @@ const getExpirationLabel = (item: InventoryItem) => {
               <Tag :severity="getTagSeverity(data)" :value="getExpirationLabel(data)" />
             </template>
           </Column>
-          <Column field="quantity" header="Antall" sortable>
+          <Column field="quantity" header="Vekt" sortable>
             <template #body="{ data }"> {{ data.quantity }} {{ data.unit }} </template>
           </Column>
           <Column field="inventory" header="På lager" sortable />
