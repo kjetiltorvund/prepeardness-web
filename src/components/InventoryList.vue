@@ -8,7 +8,6 @@ import Column from 'primevue/column'
 import Button from 'primevue/button'
 import ProgressSpinner from 'primevue/progressspinner'
 import Message from 'primevue/message'
-import Toast from 'primevue/toast'
 import Tag from 'primevue/tag'
 import Drawer from 'primevue/drawer'
 import ConfirmDialog from 'primevue/confirmdialog'
@@ -131,7 +130,6 @@ const getExpirationLabel = (item: InventoryItem) => {
 
 <template>
   <div class="inventory-container">
-    <Toast />
     <ConfirmDialog />
     <div class="card">
       <h1>Varebeholdning</h1>
